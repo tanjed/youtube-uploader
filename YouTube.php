@@ -1,14 +1,12 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
-
 class YouTube{
 
     private $auth_key;
-    private $OAUTH2_CLIENT_ID = '569602794419-jnr7h1l40117buus33ia36cd6lr8njn0.apps.googleusercontent.com';
-    private $OAUTH2_CLIENT_SECRET = 'W67kyn7EtVNpwbu0kqFl9tAV';
+    private $OAUTH2_CLIENT_ID;
+    private $OAUTH2_CLIENT_SECRET;
 
     function upload_video_to_youtube($video_path,$title,$description,$tags){
-        $htmlBody = '';
         try{
             $client = new Google_Client();
             $client->setClientId($this->OAUTH2_CLIENT_ID);
@@ -58,6 +56,13 @@ class YouTube{
                 fclose($handle);
                 $client->setDefer(false);
                 $htmlBody = $status;
+                $video_information = [
+                    'title' => $status['snippet']['title'],
+                    'description' => $status['snippet']['title'],
+                    'id' => $status['id']
+                ];
+                file_put_contents(__DIR__.'/output/output.txt', json_encode($status));
+                echo "Video Uploaded";
             }
             else{
                 die('Problems creating the client');
@@ -67,10 +72,14 @@ class YouTube{
         } catch (Google_Exception $e) {
             die($e->getMessage());
         }
-        die($htmlBody);
+        echo "Video Uploaded";
     }
 
     function __construct() {
+        $config = include(__DIR__.'/config.php');
         $this->auth_key = file_get_contents(__DIR__.'/token.txt');
+        $this->OAUTH2_CLIENT_ID = $config['client_id'];
+        $this->OAUTH2_CLIENT_SECRET = $config['client_secret'];
     }
+
 }

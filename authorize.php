@@ -1,36 +1,23 @@
 <?php
 
-/**
- * Library Requirements
- *
- * 1. Install composer (https://getcomposer.org)
- * 2. On the command line, change to this directory (api-samples/php)
- * 3. Require the google/apiclient library
- *    $ composer require google/apiclient:~2.0
- */
 if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
     throw new \Exception('please run "composer require google/apiclient:~2.0" in "' . __DIR__ .'"');
 }
 
 require_once __DIR__ . '/vendor/autoload.php';
+$config = include(__DIR__.'/config.php');
 session_start();
-
-
-/*
- * You can acquire an OAuth 2.0 client ID and client secret from the
- * {{ Google Cloud Console }} <{{ https://cloud.google.com/console }}>
- * For more information about using OAuth 2.0 to access Google APIs, please see:
- * <https://developers.google.com/youtube/v3/guides/authentication>
- * Please ensure that you have enabled the YouTube Data API for your project.
- */
-$OAUTH2_CLIENT_ID = '569602794419-jnr7h1l40117buus33ia36cd6lr8njn0.apps.googleusercontent.com';
-$OAUTH2_CLIENT_SECRET = 'W67kyn7EtVNpwbu0kqFl9tAV';
+$OAUTH2_CLIENT_ID = $config['client_id'];
+$OAUTH2_CLIENT_SECRET = $config['client_secret'];
 
 $client = new Google_Client();
 $client->setClientId($OAUTH2_CLIENT_ID);
 $client->setClientSecret($OAUTH2_CLIENT_SECRET);
-$client->setScopes('https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.upload');
-$redirect = filter_var('https://' .'c0e3741c4c77.ngrok.io' . $_SERVER['PHP_SELF'],
+$client->setScopes([
+    'https://www.googleapis.com/auth/youtube',
+    'https://www.googleapis.com/auth/youtube.upload'
+]);
+$redirect = filter_var($config['redirect_url'],
     FILTER_SANITIZE_URL);
 $client->setRedirectUri($redirect);
 $client->setAccessType('offline');
@@ -58,20 +45,20 @@ if (isset($_SESSION[$tokenSessionKey])) {
 // Check to ensure that the access token was successfully acquired.
 if ($client->getAccessToken()) {
     file_put_contents(__DIR__.'/token.txt', json_encode($client->getAccessToken()));
-    var_dump($client->getAccessToken());
     try {
         // Execute an API request that lists the streams owned by the user who
         // authorized the request.
-        $streamsResponse = $youtube->liveStreams->listLiveStreams('id,snippet', array(
-            'mine' => 'true',
-        ));
-
-        $htmlBody .= "<h3>Live Streams</h3><ul>";
-        foreach ($streamsResponse['items'] as $streamItem) {
-            $htmlBody .= sprintf('<li>%s (%s)</li>', $streamItem['snippet']['title'],
-                $streamItem['id']);
-        }
-        $htmlBody .= '</ul>';
+//        $streamsResponse = $youtube->liveStreams->listLiveStreams('id,snippet', array(
+//            'mine' => 'true',
+//        ));
+//
+//        $htmlBody .= "<h3>Live Streams</h3><ul>";
+//        foreach ($streamsResponse['items'] as $streamItem) {
+//            $htmlBody .= sprintf('<li>%s (%s)</li>', $streamItem['snippet']['title'],
+//                $streamItem['id']);
+//        }
+//        $htmlBody .= '</ul>';
+        header('Location: /index.php');
 
     } catch (Google_Service_Exception $e) {
         $htmlBody = sprintf('<p>A service error occurred: <code>%s</code></p>',
